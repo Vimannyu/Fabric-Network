@@ -46,10 +46,9 @@ services:
     networks:
       - test
 
-  orderer.example.com:
-    container_name: orderer.example.com
+  orderer.org.com:
+    container_name: orderer.org.com
     image: hyperledger/fabric-orderer:latest
-    dns_search: .
     environment:
       - ORDERER_GENERAL_LOGLEVEL=info
       - FABRIC_LOGGING_SPEC=INFO
@@ -66,7 +65,7 @@ services:
       - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
       - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
       - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
-      - ORDERER_METRICS_PROVIDER=prometheus
+
       - ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:8443
       - ORDERER_GENERAL_LISTENPORT=7050
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/orderers
@@ -78,13 +77,13 @@ services:
       - test
     volumes:
       - ./channel/genesis.block:/var/hyperledger/orderer/genesis.block
-      - ./channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.solulab.com/msp:/var/hyperledger/orderer/msp
-      - ./channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.solulab.com/tls:/var/hyperledger/orderer/tls
+      - ./channel/crypto-config/ordererOrganizations/org.com/orderers/orderer.solulab.com/msp:/var/hyperledger/orderer/msp
+      - ./channel/crypto-config/ordererOrganizations/org.com/orderers/orderer.solulab.com/tls:/var/hyperledger/orderer/tls
 
   
 
-  couchdb0:
-    container_name: couchdb0
+  couchdb_0:
+    container_name: couchdb_0
     image: hyperledger/fabric-couchdb
     environment:
       - COUCHDB_USER=
@@ -94,8 +93,8 @@ services:
     networks:
       - test
 
-  couchdb1:
-    container_name: couchdb1
+  couchdb_1:
+    container_name: couchdb_1
     image: hyperledger/fabric-couchdb
     environment:
       - COUCHDB_USER=
@@ -105,8 +104,8 @@ services:
     networks:
       - test
 
-  couchdb2:
-    container_name: couchdb2
+  couchdb_2:
+    container_name: couchdb_2
     image: hyperledger/fabric-couchdb
     environment:
       - COUCHDB_USER=
@@ -116,8 +115,8 @@ services:
     networks:
       - test
 
-  couchdb3:
-    container_name: couchdb3
+  couchdb_3:
+    container_name: couchdb_3
     image: hyperledger/fabric-couchdb
     environment:
       - COUCHDB_USER=
@@ -127,8 +126,8 @@ services:
     networks:
       - test
       
-      couchdb4:
-    container_name: couchdb4
+  couchdb_4:
+    container_name: couchdb_4
     image: hyperledger/fabric-couchdb
     environment:
       - COUCHDB_USER=
@@ -139,8 +138,8 @@ services:
       - test
       
       
-      couchdb5:
-    container_name: couchdb5
+  couchdb_5:
+    container_name: couchdb_5
     image: hyperledger/fabric-couchdb
     environment:
       - COUCHDB_USER=
@@ -186,7 +185,7 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/crypto/peer/tls/ca.crt
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto/peer/msp
     depends_on:
-      - couchdb0
+      - couchdb_0
     ports:
       - 7051:7051
     volumes:
@@ -231,7 +230,7 @@ services:
     ports:
       - 8051:8051
     depends_on:
-      - couchdb1
+      - couchdb_1
     volumes:
     
       - ./channel/crypto-config/peerOrganizations/org1.solulab.com/peers/peer1.org1.solulab.com/msp:/etc/hyperledger/crypto/peer/msp
@@ -242,7 +241,7 @@ services:
       - test
       
       
-      peer2.org1.solulab.com:
+  peer2.org1.solulab.com:
     container_name: peer0.org1.solulab.com
     extends:
       file: base.yaml
@@ -276,7 +275,7 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/crypto/peer/tls/ca.crt
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto/peer/msp
     depends_on:
-      - couchdb2
+      - couchdb_2
     ports:
       - 12051:12051
     volumes:
@@ -323,7 +322,7 @@ services:
     ports:
       - 9051:9051
     depends_on:
-      - couchdb3
+      - couchdb_3
     volumes:
       - ./channel/crypto-config/peerOrganizations/org2.optimize.com/peers/peer0.org2.solulab.com/msp:/etc/hyperledger/crypto/peer/msp
       - ./channel/crypto-config/peerOrganizations/org2.optimize.com/peers/peer0.org2.solulab.com/tls:/etc/hyperledger/crypto/peer/tls
@@ -365,8 +364,8 @@ services:
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto/peer/msp
     ports:
       - 10051:10051
-    depends-on:
-      - couchdb4
+    depends_on:
+      - couchdb_4
     volumes:
       - ./channel/crypto-config/peerOrganizations/org2.optimize.com/peers/peer1.org2.solulab.com/msp:/etc/hyperledger/crypto/peer/msp
       - ./channel/crypto-config/peerOrganizations/org2.optimize.com/peers/peer1.org2.solulab.com/tls:/etc/hyperledger/crypto/peer/tls
@@ -376,7 +375,7 @@ services:
       - test
       
       
-       peer2.org2.optimize.com:
+  peer2.org2.optimize.com:
     container_name: peer1.org2.optimize.com
     extends:
       file: base.yaml
@@ -409,8 +408,8 @@ services:
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto/peer/msp
     ports:
       - 11051:11051
-    depends-on:
-      - couchdb5
+    depends_on:
+      - couchdb_5
     volumes:
       - ./channel/crypto-config/peerOrganizations/org2.optimize.com/peers/peer1.org2.solulab.com/msp:/etc/hyperledger/crypto/peer/msp
       - ./channel/crypto-config/peerOrganizations/org2.optimize.com/peers/peer1.org2.solulab.com/tls:/etc/hyperledger/crypto/peer/tls
@@ -422,7 +421,7 @@ services:
       
       
       
-      cli:
+  cli:
     container_name: cli
     image: hyperledger/fabric-tools:latest
     labels:

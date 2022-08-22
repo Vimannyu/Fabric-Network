@@ -346,9 +346,9 @@ services:
       - CORE_PEER_ID=peer1.org2.optimize.com
       - CORE_PEER_ADDRESS=peer1.org2.optimize.com:10051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
-      - CORE_PEER_CHAINCODEADDRESS=peer1.org2.optimize.com:10052
-      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
-      # Exposed for discovery Service
+      - CORE_PEER_CHAINCODEADDRESS=peer1.org2.optimize.com:10051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10051
+    
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org2.optimize.com:10051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.optimize.com:9051
 
@@ -356,7 +356,7 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb4:9984
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-      # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9440
+  
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/crypto/peer/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/crypto/peer/tls/server.key
@@ -389,10 +389,10 @@ services:
 
       - CORE_PEER_ID=peer1.org2.optimize.com
       - CORE_PEER_ADDRESS=peer1.org2.optimize.com:11051
-      - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
       - CORE_PEER_CHAINCODEADDRESS=peer1.org2.optimize.com:11052
-      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
-      # Exposed for discovery Service
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11051
+   
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org2.optimize.com:11051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.optimize.com:9051
 
@@ -400,7 +400,7 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb5:9985
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-      # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9440
+   
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/crypto/peer/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/crypto/peer/tls/server.key

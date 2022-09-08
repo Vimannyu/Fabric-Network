@@ -7,20 +7,20 @@ version: '3.7'
 
 volumes:
   orderer.org.com:
-  peer0.org2.optimize.com:
-  peer1.org2.optimize.com:
-  peer2.org2.optimize.com:
+  peer0.org1.solulab.com:
+  peer1.org1.solulab.com:
+  peer1.org1.solulab.com:
   peer0.org2.optimize.com:
   peer1.org2.optimize.com:
   peer2.org2.optimize.com:
 
 networks:
-  test:
-    name: fabric_test
+  test-net:
+    name: fabric_system
 
 services:
 
-  orderer.org.com:
+ orderer.org.com:
     container_name: orderer.org.com
     image: hyperledger/fabric-orderer:latest
     labels:
@@ -47,27 +47,33 @@ services:
       - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
       - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
       - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
-      - ORDERER_OPERATIONS_LISTENADDRESS=orderer.optimize.com:9443
+      - ORDERER_OPERATIONS_LISTENADDRESS=orderer.org.com:9443
       - ORDERER_METRICS_PROVIDER=prometheus
-    working_dir: /root
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: orderer
     volumes:
+        - ../system-genesis-block/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
         - ../organizations/ordererOrganizations/org.com/orderers/orderer.org.com/msp:/var/hyperledger/orderer/msp
-        - ../organizations/ordererOrganizations/org.com/orderers/orderer.optimize.com/tls/:/var/hyperledger/orderer/tls
+        - ../organizations/ordererOrganizations/org.com/orderers/orderer.org.com/tls/:/var/hyperledger/orderer/tls
         - orderer.org.com:/var/hyperledger/production/orderer
     ports:
       - 7050:7050
-
+      - 7053:7053
+      - 9443:9443
     networks:
-      - test
+      - test-net
 
-  peer0.org2.optimize.com:
-    container_name: peer0.org2.optimize.com
+
+
+peer0.org1.solulab.com:
+    container_name: peer0.org1.solulab.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
     environment:
-      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_system
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -76,33 +82,42 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer0.org2.optimize.com
-      - CORE_PEER_ADDRESS=peer0.org2.optimize.com:7051
+      - CORE_PEER_ID=peer0.org1.solulab.com
+      - CORE_PEER_ADDRESS=peer0.org1.solulab.com:7051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.org2.optimize.com:7052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org1.solulab.com:7052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org2.optimize.com:8051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.optimize.com:7051
-      - CORE_PEER_LOCALMSPID=org2MSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org1.solulab.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.solulab.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.org1.solulab.com:9444
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0org1"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
     volumes:
-        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer0.org2.optimize.com:/etc/hyperledger/fabric
-        - peer0.org2.optimize.com:/var/hyperledger/production
-    working_dir: /root
+        - ${DOCKER_SOCK}:/host/var/run/docker.sock
+        - ../organizations/peerOrganizations/org1.solulab.com/peers/peer0.org1.solulab.com/msp:/etc/hyperledger/fabric/msp
+        - ../organizations/peerOrganizations/org1.solulab.com/peers/peer0.org1.solulab.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.org1.solulab.com:/var/hyperledger/production
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
       - 7051:7051
+      - 9444:9444
     networks:
-      - test
+      - test-net
 
-peer1.org2.optimize.com:
-    container_name: peer1.org2.optimize.com
+
+
+peer1.org1.solulab.com:
+    container_name: peer1.org1.solulab.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
     environment:
-      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_system
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -111,34 +126,42 @@ peer1.org2.optimize.com:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer1.org2.optimize.com
-      - CORE_PEER_ADDRESS=peer1.org2.optimize.com:8051
+      - CORE_PEER_ID=peer1.org1.solulab.com
+      - CORE_PEER_ADDRESS=peer1.org1.solulab.com:8051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
-      - CORE_PEER_CHAINCODEADDRESS=peer1.org2.optimize.com:8052
+      - CORE_PEER_CHAINCODEADDRESS=peer1.org1.solulab.com:8052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer2.org2.optimize.com:9051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org2.optimize.com:8051
-      - CORE_PEER_LOCALMSPID=org2MSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org1.solulab.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org1.solulab.com:8051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_OPERATIONS_LISTENADDRESS=peer1.org1.solulab.com:9445
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer1org1"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
     volumes:
-        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer1.org2.optimize.com:/etc/hyperledger/fabric
-        - peer1.org2.optimize.com:/var/hyperledger/production
-    working_dir: /root
+        - ${DOCKER_SOCK}:/host/var/run/docker.sock
+        - ../organizations/peerOrganizations/org1.solulab.com/peers/peer1.org1.solulab.com/msp:/etc/hyperledger/fabric/msp
+        - ../organizations/peerOrganizations/org1.solulab.com/peers/peer1.org1.solulab.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.org1.solulab.com:/var/hyperledger/production
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
       - 8051:8051
+      - 9445:9445
     networks:
-      - test
+      - test-net
 
 
-peer2.org2.optimize.com:
-    container_name: peer2.org2.optimize.com
+
+peer2.org1.solulab.com:
+    container_name: peer2.org1.solulab.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
     environment:
-      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_system
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -147,34 +170,41 @@ peer2.org2.optimize.com:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer2.org2.optimize.com
-      - CORE_PEER_ADDRESS=peer2.org2.optimize.com:9051
-      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
-      - CORE_PEER_CHAINCODEADDRESS=peer1.org2.optimize.com:9052
+      - CORE_PEER_ID=peer2.org1.solulab.com
+      - CORE_PEER_ADDRESS=peer2.org1.solulab.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer2.org1.solulab.com:9052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer2.org2.optimize.com:9051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org2.optimize.com:8051
-      - CORE_PEER_LOCALMSPID=org2MSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer2.org1.solulab.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer2.org1.solulab.com:9051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_OPERATIONS_LISTENADDRESS=peer2.org1.solulab.com:9446
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer2org1"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
     volumes:
-        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer2.org2.optimize.com:/etc/hyperledger/fabric
-        - peer2.org2.optimize.com:/var/hyperledger/production
-    working_dir: /root
+        - ${DOCKER_SOCK}:/host/var/run/docker.sock
+        - ../organizations/peerOrganizations/org1.solulab.com/peers/peer2.org1.solulab.com/msp:/etc/hyperledger/fabric/msp
+        - ../organizations/peerOrganizations/org1.solulab.com/peers/peer2.org1.solulab.com/tls:/etc/hyperledger/fabric/tls
+        - peer2.org1.solulab.com:/var/hyperledger/production
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
       - 9051:9051
+      - 9446:9446
     networks:
-      - test
+      - test-net
 
 
-  peer0.org2.optimize.com:
+peer0.org2.optimize.com:
     container_name: peer0.org2.optimize.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
     environment:
-      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_system
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -188,20 +218,27 @@ peer2.org2.optimize.com:
       - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
       - CORE_PEER_CHAINCODEADDRESS=peer0.org2.optimize.com:10052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.optimize.com:10051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.optimize.com:10051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org2.optimize.com:11051
       - CORE_PEER_LOCALMSPID=Org2MSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp      
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.org2.optimize.com:9447
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0org2"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
     volumes:
-        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer0.org2.optimize.com:/etc/hyperledger/fabric
+        - ${DOCKER_SOCK}:/host/var/run/docker.sock
+        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer0.org2.optimize.com/msp:/etc/hyperledger/fabric/msp
+        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer0.org2.optimize.com/tls:/etc/hyperledger/fabric/tls
         - peer0.org2.optimize.com:/var/hyperledger/production
-    working_dir: /root
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
       - 10051:10051
+      - 9447:9447
     networks:
-      - test
+      - test-net
+
+
 
 peer1.org2.optimize.com:
     container_name: peer1.org2.optimize.com
@@ -209,7 +246,9 @@ peer1.org2.optimize.com:
     labels:
       service: hyperledger-fabric
     environment:
-      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_system
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -223,20 +262,27 @@ peer1.org2.optimize.com:
       - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
       - CORE_PEER_CHAINCODEADDRESS=peer1.org2.optimize.com:11052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org2.optimize.com:10051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org2.optimize.com:11051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer2.org2.optimize.com:12051
       - CORE_PEER_LOCALMSPID=Org2MSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp      
+      - CORE_OPERATIONS_LISTENADDRESS=peer1.org2.optimize.com:9448
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer1org2"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
     volumes:
-        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer1.org2.optimize.com:/etc/hyperledger/fabric
+        - ${DOCKER_SOCK}:/host/var/run/docker.sock
+        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer1.org2.optimize.com/msp:/etc/hyperledger/fabric/msp
+        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer1.org2.optimize.com/tls:/etc/hyperledger/fabric/tls
         - peer1.org2.optimize.com:/var/hyperledger/production
-    working_dir: /root
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
       - 11051:11051
+      - 9448:9448
     networks:
-      - test
+      - test-net
+
+
 
 peer2.org2.optimize.com:
     container_name: peer2.org2.optimize.com
@@ -244,7 +290,9 @@ peer2.org2.optimize.com:
     labels:
       service: hyperledger-fabric
     environment:
-      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_system
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -255,24 +303,28 @@ peer2.org2.optimize.com:
       # Peer specific variables
       - CORE_PEER_ID=peer2.org2.optimize.com
       - CORE_PEER_ADDRESS=peer2.org2.optimize.com:12051
-      - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
       - CORE_PEER_CHAINCODEADDRESS=peer2.org2.optimize.com:12052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:12052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer2.org2.optimize.com:10051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer2.org2.optimize.com:12051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.optimize.com:10051
       - CORE_PEER_LOCALMSPID=Org2MSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp      
+      - CORE_OPERATIONS_LISTENADDRESS=peer2.org2.optimize.com:9449
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer2org2"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
     volumes:
-        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer2.org2.optimize.com:/etc/hyperledger/fabric
+        - ${DOCKER_SOCK}:/host/var/run/docker.sock
+        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer2.org2.optimize.com/msp:/etc/hyperledger/fabric/msp
+        - ../organizations/peerOrganizations/org2.optimize.com/peers/peer2.org2.optimize.com/tls:/etc/hyperledger/fabric/tls
         - peer2.org2.optimize.com:/var/hyperledger/production
-    working_dir: /root
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
-      - 11051:11051
+      - 12051:12051
+      - 9449:9449
     networks:
-      - test
-
+      - test-net
 
 
   cli:
@@ -284,8 +336,8 @@ peer2.org2.optimize.com:
     stdin_open: true
     environment:
       - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - FABRIC_LOGGING_SPEC=INFO
-      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
       #- FABRIC_LOGGING_SPEC=DEBUG
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
@@ -293,11 +345,7 @@ peer2.org2.optimize.com:
         - ../organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/organizations
         - ../scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
     depends_on:
-      - peer0.org2.optimize.com
-      - peer1.org2.optimize.com
-      - peer2.org2.optimize.com
-      - peer0.org2.optimize.com
-      - peer1.org2.optimize.com
-      - peer2.org2.optimize.com
+      - peer0.org1.example.com
+      - peer0.org2.example.com
     networks:
       - test
